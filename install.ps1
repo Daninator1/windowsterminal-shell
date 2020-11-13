@@ -327,17 +327,12 @@ function CreateMenuItem(
     [Parameter(Mandatory=$true)]
     [string]$icon,
     [Parameter(Mandatory=$true)]
-    [string]$command,
-    [Parameter(Mandatory=$true)]
-    [bool]$elevated
+    [string]$command
 )
 {
     New-Item -Path $rootKey -Force | Out-Null
     New-ItemProperty -Path $rootKey -Name 'MUIVerb' -PropertyType String -Value $name | Out-Null
     New-ItemProperty -Path $rootKey -Name 'Icon' -PropertyType String -Value $icon | Out-Null
-    if ($elevated) {
-        New-ItemProperty -Path $rootKey -Name 'HasLUAShield' -PropertyType String -Value '' | Out-Null
-    }
 
     New-Item -Path "$rootKey\command" -Force | Out-Null
     New-ItemProperty -Path "$rootKey\command" -Name '(Default)' -PropertyType String -Value $command | Out-Null
@@ -362,13 +357,11 @@ function CreateProfileMenuItems(
     $guid = $profile.guid
     $name = $profile.name
     $command = """$executable"" -p ""$name"" -d ""%V."""
-    $elevated = "wscript.exe ""$localCache/helper.vbs"" ""$executable"" ""%V."" ""$name"""
     $profileIcon = GetProfileIcon $profile $folder $localCache $icon $isPreview
 
     if ($layout -eq "Default") {
         $rootKey = "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\ContextMenus\MenuTerminal\shell\$guid"
         CreateMenuItem $rootKey $name $profileIcon $command $false
-        CreateMenuItem $rootKeyElevated $name $profileIcon $elevated $true
     } elseif ($layout -eq "Flat") {
         CreateMenuItem "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\MenuTerminal_$guid" "$name here" $profileIcon $command $false  
         CreateMenuItem "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\Background\shell\MenuTerminal_$guid" "$name here" $profileIcon $command $false
@@ -408,7 +401,6 @@ function CreateMenuItems(
         New-Item -Path 'Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\ContextMenus\MenuTerminal\shell' -Force | Out-Null
     } elseif ($layout -eq "Mini") {
         $command = """$executable"" -d ""%V."""
-        $elevated = "wscript.exe ""$localCache/helper.vbs"" ""$executable"" ""%V."""
         CreateMenuItem "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\MenuTerminalMini" "Windows Terminal here" $icon $command $false
         CreateMenuItem "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\Background\shell\MenuTerminalMini" "Windows Terminal here" $icon $command $false 
         return
